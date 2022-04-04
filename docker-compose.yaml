@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  backend-challenge-postgres:
+    container_name: backend-challenge-postgres
+    image: postgres:13
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      POSTGRES_DB: backend_challenge
+      POSTGRES_USER: doodle
+      POSTGRES_PASSWORD: d00D13
+    ports:
+      - "5432:5432"
+    networks:
+      - backend-challenge
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.500'
+          memory: 50M
+
+networks:
+  backend-challenge:
+    driver: bridge

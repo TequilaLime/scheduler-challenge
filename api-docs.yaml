@@ -1,0 +1,333 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+  - url: http://localhost:8080
+    description: Generated server url
+paths:
+  /users:
+    get:
+      tags:
+        - user-controller
+      operationId: readUsers
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserCollectionDto'
+    post:
+      tags:
+        - user-controller
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDto'
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserDto'
+  /slots:
+    get:
+      tags:
+        - slot-controller
+      operationId: readSlots
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SlotCollectionDto'
+    post:
+      tags:
+        - slot-controller
+      operationId: createSlot
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlotDto'
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SlotDto'
+  /meetings:
+    get:
+      tags:
+        - meeting-controller
+      operationId: readMeetings
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/MeetingCollectionDto'
+    post:
+      tags:
+        - meeting-controller
+      operationId: createMeeting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MeetingDto'
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/MeetingDto'
+  /users/{id}:
+    get:
+      tags:
+        - user-controller
+      operationId: readUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserDto'
+    delete:
+      tags:
+        - user-controller
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+  /slots/{id}:
+    get:
+      tags:
+        - slot-controller
+      operationId: readSlot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SlotDto'
+    delete:
+      tags:
+        - slot-controller
+      operationId: deleteSlot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+  /meetings/{id}:
+    get:
+      tags:
+        - meeting-controller
+      operationId: readMeeting
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/MeetingDto'
+    delete:
+      tags:
+        - meeting-controller
+      operationId: deleteMeeting
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+  /calendars:
+    get:
+      tags:
+        - calendar-controller
+      operationId: readCalendarMonth
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CalendarMonthDto'
+components:
+  schemas:
+    UserDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    SlotDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+    MeetingDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slotId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserDto'
+    UserCollectionDto:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserDto'
+        page:
+          type: integer
+          format: int64
+        pageSize:
+          type: integer
+          format: int64
+        totalSize:
+          type: integer
+          format: int64
+    SlotCollectionDto:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlotDto'
+        page:
+          type: integer
+          format: int64
+        pageSize:
+          type: integer
+          format: int64
+        totalSize:
+          type: integer
+          format: int64
+    MeetingCollectionDto:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MeetingDto'
+        page:
+          type: integer
+          format: int64
+        pageSize:
+          type: integer
+          format: int64
+        totalSize:
+          type: integer
+          format: int64
+    CalendarDayDto:
+      type: object
+      properties:
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlotDto'
+        meetings:
+          type: array
+          items:
+            $ref: '#/components/schemas/MeetingDto'
+    CalendarMonthDto:
+      type: object
+      properties:
+        days:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/CalendarDayDto'
+        slotsBefore:
+          type: integer
+          format: int64
+        slotsAfter:
+          type: integer
+          format: int64
+        meetingsBefore:
+          type: integer
+          format: int64
+        meetingsAfter:
+          type: integer
+          format: int64
