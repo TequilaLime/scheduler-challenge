@@ -1,7 +1,7 @@
+/* (C) 2022 */
 package com.doodle.backendchallenge.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.Objects;
 import java.util.UUID;
 

@@ -33,7 +33,7 @@ Slots represent a time span that can be selected to book a meeting.
 Why not booking a meeting directly?
 Well, we want to decide when meeting can be booked.
 Meetings represent occupied slots.
-So once slot is selected, it becomes a meeting.  
+So once slot is selected, it becomes a meeting.
 
 These 3 entities are simple one and has basic CRD operations (no update).
 For example:\
@@ -84,3 +84,17 @@ The first one is about making sure the requests and responses are as expected.
 The second one is about checking the performance of the solution.
 Please don't consider it as a required part of a challenge, it is only a tool to compare different implementations.
 But do have in mind that **the most performant solution** is needed.
+
+
+
+## Additional Assumptions I made due to lack of requirement for business logic
+
+- When creating a meeting with participants provided that do not exist id database, the meeting is created without them.
+
+## Implementation flaws:
+- The Redis transaction are not atomic with postgres transactions. (I simply didn't have time for thorough solution)
+- The Redis persistence implementation targets performance rather that low maintenance. 
+- The Redis in unprotected, no username or password provided. The reason is I could faster go to container cli without typing username and password, while debugging. This can be done easily. 
+- Redis push end-points are implemented in controllers, this is an arguable decision!
+- Decided not to abstract Services, Entities, therefore code duplication might occur.
+- added servlet path as /scheduler, this is for semantic meaning.

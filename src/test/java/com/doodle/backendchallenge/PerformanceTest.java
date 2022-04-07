@@ -1,8 +1,33 @@
+/* (C)2022 */
 package com.doodle.backendchallenge;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import io.restassured.http.ContentType;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import io.restassured.response.Response;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,26 +43,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.BindMode;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
-import javax.annotation.PostConstruct;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-
+@Slf4j
 @ActiveProfiles("performance-test")
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ContextConfiguration(initializers = PerformanceTest.DockerPostgreDataSourceInitializer.class)
@@ -60,6 +71,8 @@ class PerformanceTest {
   private static final long ONE_HOUR_MILLIS = 3600000;
   private static final DateFormat MONTH_FORMATTER = new SimpleDateFormat("yyyy-MM");
 
+  public static GenericContainer redisDBContainer =
+      new GenericContainer(DockerImageName.parse("redis:latest")).withExposedPorts(6379);
   public static PostgreSQLContainer<?> postgreDBContainer =
       new PostgreSQLContainer<>("postgres:13")
           .withDatabaseName("backend-challenge")
@@ -75,6 +88,7 @@ class PerformanceTest {
     postgreDBContainer.withClasspathResourceMapping(
         "init.sql", "/docker-entrypoint-initdb.d/init.sql", BindMode.READ_ONLY);
     postgreDBContainer.start();
+    redisDBContainer.start();
   }
 
   public static class DockerPostgreDataSourceInitializer
@@ -85,7 +99,9 @@ class PerformanceTest {
           applicationContext,
           "spring.datasource.url=" + postgreDBContainer.getJdbcUrl(),
           "spring.datasource.username=" + postgreDBContainer.getUsername(),
-          "spring.datasource.password=" + postgreDBContainer.getPassword());
+          "spring.datasource.password=" + postgreDBContainer.getPassword(),
+          "spring.redis.host=" + redisDBContainer.getHost(),
+          "spring.redis.port=" + redisDBContainer.getMappedPort(6379));
     }
   }
 
@@ -101,7 +117,7 @@ class PerformanceTest {
 
   @PostConstruct
   public void init() {
-    uri = "http://localhost:" + port;
+    uri = "http://localhost:" + port + "/scheduler";
   }
 
   @BeforeEach

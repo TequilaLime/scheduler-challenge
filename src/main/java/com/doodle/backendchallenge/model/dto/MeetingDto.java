@@ -1,20 +1,21 @@
+/* (C) 2022 */
 package com.doodle.backendchallenge.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class MeetingDto {
+public class MeetingDto implements Comparable<MeetingDto> {
   private UUID id;
   private UUID slotId;
   private String title;
   private OffsetDateTime startAt;
   private OffsetDateTime endAt;
-  private List<UserDto> participants;
+  private List<UserDto> participants = new ArrayList<>(); // not a thorough solution(hook)
 
   public MeetingDto() {}
 
@@ -77,6 +78,11 @@ public class MeetingDto {
 
   public void setParticipants(List<UserDto> participants) {
     this.participants = participants;
+  }
+
+  @Override
+  public int compareTo(MeetingDto otherMeeting) {
+    return this.startAt.compareTo(otherMeeting.getStartAt());
   }
 
   @Override

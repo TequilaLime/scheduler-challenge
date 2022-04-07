@@ -4,6 +4,7 @@ import com.doodle.backendchallenge.controller.base.IntegrationTest;
 import com.doodle.backendchallenge.service.MeetingService;
 import com.doodle.backendchallenge.service.SlotService;
 import com.doodle.backendchallenge.service.UserService;
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

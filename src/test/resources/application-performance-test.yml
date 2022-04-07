@@ -1,3 +1,17 @@
 spring:
   jpa:
     show-sql: false
+
+#disable com.doodle.backendchallenge logs here -> OFF or FATAL options.
+logging:
+  level:
+    ROOT: WARN
+    org.apache.tomcat: INFO
+    org.apache.catalina: INFO
+    com.sun.xml: WARN
+    javax.xml: WARN
+    org.hibernate: ERROR
+    org.springframework: WARN
+    org.springframework.web: WARN
+    feign.Logger: WARN
+    com.doodle.backendchallenge: OFF

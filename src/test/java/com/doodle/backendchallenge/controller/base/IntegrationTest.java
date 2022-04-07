@@ -1,8 +1,17 @@
 package com.doodle.backendchallenge.controller.base;
 
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.emptyString;
+import static org.hamcrest.Matchers.not;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
+import java.util.List;
+import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,24 +25,20 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.BindMode;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
-import javax.annotation.PostConstruct;
-import java.util.List;
-
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.emptyString;
-import static org.hamcrest.Matchers.not;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-
+@Slf4j
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ContextConfiguration(initializers = IntegrationTest.DockerPostgreDataSourceInitializer.class)
 @ExtendWith(SpringExtension.class)
 @Testcontainers
 public abstract class IntegrationTest {
+  public static GenericContainer redisDBContainer =
+      new GenericContainer(DockerImageName.parse("redis:latest")).withExposedPorts(6379);
   public static PostgreSQLContainer<?> postgreDBContainer =
       new PostgreSQLContainer<>("postgres:13")
           .withDatabaseName("backend-challenge")
@@ -44,6 +49,7 @@ public abstract class IntegrationTest {
     postgreDBContainer.withClasspathResourceMapping(
         "init.sql", "/docker-entrypoint-initdb.d/init.sql", BindMode.READ_ONLY);
     postgreDBContainer.start();
+    redisDBContainer.start();
   }
 
   public static class DockerPostgreDataSourceInitializer
@@ -54,7 +60,9 @@ public abstract class IntegrationTest {
           applicationContext,
           "spring.datasource.url=" + postgreDBContainer.getJdbcUrl(),
           "spring.datasource.username=" + postgreDBContainer.getUsername(),
-          "spring.datasource.password=" + postgreDBContainer.getPassword());
+          "spring.datasource.password=" + postgreDBContainer.getPassword(),
+          "spring.redis.host=" + redisDBContainer.getHost(),
+          "spring.redis.port=" + redisDBContainer.getMappedPort(6379));
     }
   }
 
@@ -70,7 +78,7 @@ public abstract class IntegrationTest {
 
   @PostConstruct
   public void init() {
-    uri = "http://localhost:" + port;
+    uri = "http://localhost:" + port + "/scheduler";
   }
 
   @BeforeEach

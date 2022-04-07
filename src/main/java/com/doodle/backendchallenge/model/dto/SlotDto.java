@@ -1,13 +1,13 @@
+/* (C) 2022 */
 package com.doodle.backendchallenge.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SlotDto {
+public class SlotDto implements Comparable<SlotDto> {
   private UUID id;
   private OffsetDateTime startAt;
   private OffsetDateTime endAt;
@@ -42,6 +42,11 @@ public class SlotDto {
 
   public void setEndAt(OffsetDateTime endAt) {
     this.endAt = endAt;
+  }
+
+  @Override
+  public int compareTo(SlotDto o) {
+    return this.getStartAt().compareTo(o.getStartAt());
   }
 
   @Override

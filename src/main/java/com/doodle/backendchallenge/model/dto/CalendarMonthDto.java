@@ -1,3 +1,4 @@
+/* (C) 2022 */
 package com.doodle.backendchallenge.model.dto;
 
 import java.util.Map;

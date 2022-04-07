@@ -21,6 +21,13 @@ services:
           cpus: '0.500'
           memory: 50M
 
+  #standalone mode, no clustering
+  backend-challenge-redis:
+    container_name: backend-challenge-redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
 networks:
   backend-challenge:
     driver: bridge

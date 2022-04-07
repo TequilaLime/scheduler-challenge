@@ -1,5 +1,11 @@
 package com.doodle.backendchallenge.controller;
 
+import static io.restassured.RestAssured.delete;
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+
 import com.doodle.backendchallenge.controller.base.IntegrationTest;
 import com.doodle.backendchallenge.service.SlotService;
 import io.restassured.http.ContentType;
@@ -7,10 +13,6 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-
-import static io.restassured.RestAssured.*;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
 
 class SlotControllerITest extends IntegrationTest {
 
@@ -43,6 +45,19 @@ class SlotControllerITest extends IntegrationTest {
                   "endAt":"2021-09-29T22:00:00+02:00"
                 }
                 """, responseId).replace("\n", "").replace(" ", "")));
+
+    Response response2 =
+        given()
+            .contentType(ContentType.JSON)
+            .body(
+                """
+                {
+                  "startAt":"2021-09-29T19:00:00.000+02:00",
+                  "endAt":"2021-09-29T20:00:00.000+02:00"
+                }
+                """)
+            .post(getBaseUrl() + "/slots");
+    String responseId2 = response.then().extract().path("id");
   }
 
   @Test
@@ -75,6 +90,38 @@ class SlotControllerITest extends IntegrationTest {
         .then()
         .assertThat()
         .statusCode(409);
+  }
+
+  @Test
+  void createTwoSlots() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(
+            """
+            {
+            "title":"Test Slot 1",
+            "startAt":"2022-01-01T10:00:00.000+00:00",
+            "endAt":"2022-01-01T11:00:00.000+00:00"
+            }")
+            """)
+        .post(getBaseUrl() + "/slots")
+        .then()
+        .assertThat()
+        .statusCode(201);
+    given()
+        .contentType(ContentType.JSON)
+        .body(
+            """
+            {
+            "title":"Test Slot 2",
+            "startAt":"2022-01-01T11:00:00.000+00:00",
+            "endAt":"2022-01-01T12:00:00.000+00:00"
+            }
+            """)
+        .post(getBaseUrl() + "/slots")
+        .then()
+        .assertThat()
+        .statusCode(201);
   }
 
   @Test
