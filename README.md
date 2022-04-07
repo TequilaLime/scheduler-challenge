@@ -19,7 +19,7 @@ It has 4 endpoints:
 - /calendars
 
 All the endpoints are described in the Open API 3 specification file `api-docs.yaml`.
-You can also access Swagger UI html page by using the url: http://localhost:8080/swagger-ui.html.
+You can also access Swagger UI html page by using the url: http://localhost:8080/scheduler/swagger-ui.html.
 Please note that project has to be runnable in order to start it and access this page.
 
 The purpose of the service is to manage the meeting scheduling.
@@ -99,4 +99,4 @@ But do have in mind that **the most performant solution** is needed.
 - Redis push end-points are implemented in controllers, this is an arguable decision!
 - Decided not to abstract Services, Entities, therefore code duplication might occur.
 - added servlet path as /scheduler, this is for semantic meaning.
-- Calendar DTO Classes are used for storing as a JSON in Redis. It was challenge time-saving solution for me.
+- Calendar DTO Classes are used for storing as a JSON in Redis. For me it was to save time for a solution.
