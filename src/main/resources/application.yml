@@ -43,4 +43,4 @@ logging:
     org.springframework: WARN
     org.springframework.web: WARN
     feign.Logger: WARN
-    com.doodle.backendchallenge: DEBUG
+    com.doodle.backendchallenge: WARN

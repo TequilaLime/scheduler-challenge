@@ -34,7 +34,6 @@ public class MeetingService {
 
   @Transactional
   public MeetingDto createMeeting(MeetingDto meetingDto) {
-    log.debug("start creating meeting");
     SlotDto slotDto = slotService.readSlot(meetingDto.getSlotId());
     List<UUID> userIds =
         Optional.ofNullable(meetingDto.getParticipants()).orElse(new ArrayList<>()).stream()
@@ -44,13 +43,9 @@ public class MeetingService {
     if (!userIds.isEmpty()) {
       meetingEntity.setUserEntityList(userRepository.findAllById(userIds));
     }
-    meetingsRepository.save(meetingEntity);
-    MeetingEntity savedMeeting = meetingsRepository.getById(meetingEntity.getId());
+    MeetingEntity savedMeeting = meetingsRepository.save(meetingEntity);
     slotService.deleteSlot(savedMeeting.getId());
-    log.debug("before pushing meeting entity: " + savedMeeting);
-    MeetingDto savedMeetingDto = convertToDto(savedMeeting);
-    log.debug("converted meeting dto: " + savedMeetingDto);
-    return savedMeetingDto;
+    return convertToDto(savedMeeting);
   }
 
   @Transactional(readOnly = true)

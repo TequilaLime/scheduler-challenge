@@ -7,6 +7,7 @@ import com.doodle.backendchallenge.model.dto.CalendarMonthDto;
 import com.doodle.backendchallenge.model.dto.MeetingDto;
 import com.doodle.backendchallenge.model.dto.SlotDto;
 import com.doodle.backendchallenge.repository.CalendarRepository;
+import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -29,11 +30,11 @@ public class CalendarService {
   private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM");
 
   public void pushSlotIntoCalendar(UUID slotId) {
-    log.debug("push slot to Redis");
+    log.debug("push slot: {} to Redis", slotId.toString());
     SlotDto slotDto = slotService.readSlot(slotId);
-    String id = slotDto.getStartAt().format(FORMATTER); // get id
+    String redisKey = getRedisKey(slotDto.getStartAt()); // get id
     int dayOfMonth = slotDto.getStartAt().getDayOfMonth();
-    CalendarMonth month = findById(id);
+    CalendarMonth month = findById(redisKey);
     CalendarDay day = month.getCalendarDay(dayOfMonth);
     if (day != null) {
       day.getSlots().add(slotDto);
@@ -41,62 +42,50 @@ public class CalendarService {
     } else {
       log.warn(
           "day of month is null, possible it's only just going to be initialized. id={}, dayOfMonth={}",
-          id,
+          redisKey,
           dayOfMonth);
       CalendarDay build = CalendarDay.builder().slots(Collections.singletonList(slotDto)).build();
       month.getDays().put(dayOfMonth, build);
     }
     calendarRepository.save(month);
     log.debug("successfully pushed slot");
-
-    // TODO delete later
-    log.debug("try to get value");
-    Optional<CalendarMonth> byId = calendarRepository.findById(id);
-    log.debug("is value exists: " + byId.isPresent());
-    byId.ifPresent(
-        v -> {
-          log.debug("the value is: " + v);
-        });
   }
 
   public void pushMeetingIntoCalendar(UUID meetingId) {
-    log.debug("push meeting to Redis");
+    log.debug("push meeting: {} to Redis", meetingId.toString());
     MeetingDto meetingDto = meetingService.readMeeting(meetingId);
-    log.debug("userEntities " + meetingDto.getParticipants());
-    String id = meetingDto.getStartAt().format(FORMATTER);
+    String redisKey = getRedisKey(meetingDto.getStartAt());
     int dayOfMonth = meetingDto.getStartAt().getDayOfMonth();
-    CalendarMonth month = findById(id);
+    CalendarMonth month = findById(redisKey);
     CalendarDay day = month.getCalendarDay(dayOfMonth);
-    if (day != null) {
-      day.getMeetings().add(meetingDto);
-      Collections.sort(day.getMeetings());
-      boolean isRemoved =
-          day.getSlots().removeIf(slotEntity -> slotEntity.getId().equals(meetingDto.getId()));
-      if (!isRemoved)
-        log.warn(
-            "Slot with id {} is not found, therefore not removed", meetingDto.getId().toString());
-      Collections.sort(day.getSlots());
-    } else {
-      // TODO maybe throw an exception?!
-      log.error("DAY IS NOT FOUND...");
+    if (day == null) { // log warn just in case
+      log.warn(
+          "Day: {} is not found for redis key: {}, is there any slots for that day.",
+          dayOfMonth,
+          redisKey);
+      return;
     }
+    day.getMeetings().add(meetingDto);
+    Collections.sort(day.getMeetings());
+    boolean isRemoved =
+        day.getSlots().removeIf(slotEntity -> slotEntity.getId().equals(meetingDto.getId()));
+    if (!isRemoved) // log warn just in case
+    {
+      log.warn(
+          "Slot with id {} is not found, therefore not removed", meetingDto.getId().toString());
+    }
+    Collections.sort(day.getSlots());
+
     calendarRepository.save(month);
     log.debug("successfully pushed meeting");
-    // TODO delete later
-    log.debug("try to get value");
-    Optional<CalendarMonth> byId = calendarRepository.findById(id);
-    log.debug("is value exists: " + byId.isPresent());
-    byId.ifPresent(
-        v -> {
-          log.debug("the value is: " + v);
-        });
   }
 
   public void removeMeetingFromCalendar(UUID meetingId) {
+    log.debug("remove meeting: {} from redis", meetingId.toString());
     MeetingDto meetingDto = meetingService.readMeeting(meetingId);
-    String id = meetingDto.getStartAt().format(FORMATTER);
+    String redisKey = getRedisKey(meetingDto.getStartAt());
     int dayOfMonth = meetingDto.getStartAt().getDayOfMonth();
-    CalendarMonth month = findById(id);
+    CalendarMonth month = findById(redisKey);
     CalendarDay day = month.getCalendarDay(dayOfMonth);
     boolean isRemoved = day.getMeetings().removeIf(m -> m.getId().equals(meetingDto.getId()));
     if (!isRemoved) {
@@ -107,23 +96,16 @@ public class CalendarService {
     Collections.sort(day.getMeetings());
     SlotDto slotDto =
         new SlotDto(meetingDto.getId(), meetingDto.getStartAt(), meetingDto.getEndAt());
+    log.debug("add slot: {} back to as if it's available", slotDto.getId().toString());
     day.getSlots().add(slotDto);
     Collections.sort(day.getSlots());
 
     calendarRepository.save(month);
-    // TODO delete later
-    log.debug("removeMeetingFromCalendar: try to get value:");
-    Optional<CalendarMonth> byId = calendarRepository.findById(id);
-    log.debug("is value exists: " + byId.isPresent());
-    byId.ifPresent(
-        v -> {
-          log.debug("the value is: " + v);
-        });
+    log.debug("successfully removed meeting");
   }
 
   public CalendarMonthDto readCalendarMonth(String month) {
     YearMonth yearMonth = YearMonth.parse(month, FORMATTER);
-    log.debug("parsed local Date value" + yearMonth.toString());
     YearMonth previousMonthDate = yearMonth.minusMonths(1);
     YearMonth nextMonthsDate = yearMonth.plusMonths(1);
 
@@ -159,5 +141,9 @@ public class CalendarService {
     return month.getDays().values().stream()
         .mapToLong(f -> f.getMeetings() != null ? f.getMeetings().size() : 0L)
         .sum();
+  }
+
+  public String getRedisKey(OffsetDateTime dateTime) {
+    return dateTime.format(FORMATTER);
   }
 }

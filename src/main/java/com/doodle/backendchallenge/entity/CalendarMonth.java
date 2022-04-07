@@ -29,9 +29,15 @@ public class CalendarMonth implements Serializable {
 
   public CalendarDay getCalendarDay(Integer dayOfTheMonth) {
     CalendarDay day = this.days.get(dayOfTheMonth);
-    if (day == null) return day;
-    if (day.getMeetings() == null) day.setMeetings(new ArrayList<>());
-    if (day.getSlots() == null) day.setSlots(new ArrayList<>());
+    if (day == null) {
+      return null;
+    }
+    if (day.getMeetings() == null) {
+      day.setMeetings(new ArrayList<>());
+    }
+    if (day.getSlots() == null) {
+      day.setSlots(new ArrayList<>());
+    }
     return day;
   }
 }

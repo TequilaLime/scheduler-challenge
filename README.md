@@ -94,7 +94,9 @@ But do have in mind that **the most performant solution** is needed.
 ## Implementation flaws:
 - The Redis transaction are not atomic with postgres transactions. (I simply didn't have time for thorough solution)
 - The Redis persistence implementation targets performance rather that low maintenance. 
-- The Redis in unprotected, no username or password provided. The reason is I could faster go to container cli without typing username and password, while debugging. This can be done easily. 
+- The Redis in unprotected, no username or password provided. The reason is I could faster go to container cli without typing username and password, while debugging. This can be done easily.
+- The Redis data can be easily corrupted and inconsistent with PostgreSQL, but easily re-called. How? many possibilities that can be discussed. 
 - Redis push end-points are implemented in controllers, this is an arguable decision!
 - Decided not to abstract Services, Entities, therefore code duplication might occur.
 - added servlet path as /scheduler, this is for semantic meaning.
+- Calendar DTO Classes are used for storing as a JSON in Redis. It was challenge time-saving solution for me.

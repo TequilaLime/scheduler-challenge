@@ -44,26 +44,11 @@ public class SlotService {
           "Slot request with startAt: {}, endAt: '{}' overlaps with another slot",
           slotRequest.getStartAt(),
           slotRequest.getEndAt().toString());
-      log.debug(all.toString());
       throw new ConflictException("Slot overlaps");
     }
     // Otherwise create a slot
-    log.debug("createSlotRequest: " + slotRequest);
-    SlotEntity slotEntity = convertToEntity(slotRequest);
-    log.debug("converted request: " + slotEntity);
-    slotRepository.save(slotEntity);
-    SlotEntity savedSlotEntity = slotRepository.getById(slotEntity.getId());
-    log.debug("saved slot: " + savedSlotEntity);
-    SlotDto slotDto = convertToDto(savedSlotEntity);
-    log.debug("converted saved slot: " + slotDto);
-    // TODO to debug
-    SlotEntity test = slotRepository.getById(slotDto.getId());
-
-    log.debug("test: " + test);
-    SlotDto testDto = convertToDto(test);
-    log.debug("testDto: " + testDto);
-    // TODO REMOVE
-    return slotDto;
+    SlotEntity savedSlotEntity = slotRepository.save(convertToEntity(slotRequest));
+    return convertToDto(savedSlotEntity);
   }
 
   @Transactional
@@ -96,10 +81,7 @@ public class SlotService {
                   throw new NotFoundException("Slot not found");
                 });
 
-    log.debug("before slot converting: " + slotEntity);
-    SlotDto slotDto = convertToDto(slotEntity);
-    log.debug("return slotDto: " + slotDto);
-    return slotDto;
+    return convertToDto(slotEntity);
   }
 
   @Transactional
