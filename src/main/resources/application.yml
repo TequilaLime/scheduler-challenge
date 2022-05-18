@@ -3,7 +3,7 @@ spring:
     database: POSTGRESQL
     hibernate:
       ddl-auto: none
-    show-sql: true
+    show-sql: false
     open-in-view: false
   datasource:
     url: jdbc:postgresql://localhost:5432/backend_challenge
@@ -17,8 +17,10 @@ spring:
   application:
     name: scheduler
   redis:
-    host: localhost
-    port: 6379
+    host: 172.20.0.31
+    port: 6373
+    cluster:
+      nodes: localhost:6373,localhost:6374,localhost:6375,localhost:6376,localhost:6377,localhost:6378
 
 server:
   tomcat:

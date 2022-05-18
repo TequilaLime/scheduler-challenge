@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import java.util.Arrays;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,14 +27,19 @@ public class RedisConfig {
   @Value("${spring.redis.port}")
   private Integer redisPort;
 
+  @Value("${spring.redis.cluster.nodes}")
+  List<String> clusterNodes;
+
   @Bean
   JedisConnectionFactory jedisConnectionFactory() {
-    RedisStandaloneConfiguration redisStandaloneConfiguration =
-        new RedisStandaloneConfiguration(redisHost, redisPort);
+    RedisClusterConfiguration redisClusterConfiguration =
+        new RedisClusterConfiguration();
+    RedisClusterNode masterNode = new RedisClusterNode(redisHost, redisPort);
+    redisClusterConfiguration.clusterNode(masterNode);
     JedisClientConfiguration jedisClientConfiguration =
         JedisClientConfiguration.builder().usePooling().build();
     JedisConnectionFactory jedisConFactory =
-        new JedisConnectionFactory(redisStandaloneConfiguration, jedisClientConfiguration);
+        new JedisConnectionFactory(redisClusterConfiguration, jedisClientConfiguration);
     jedisConFactory.afterPropertiesSet();
     return jedisConFactory;
   }

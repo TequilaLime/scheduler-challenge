@@ -13,7 +13,8 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - backend-challenge
+      backend-challenge:
+        #ipv4_address: 172.20.0.20
     restart: unless-stopped
     deploy:
       resources:
@@ -22,12 +23,104 @@ services:
           memory: 50M
 
   #standalone mode, no clustering
-  backend-challenge-redis:
-    container_name: backend-challenge-redis
+  #backend-challenge-redis:
+  #  container_name: backend-challenge-redis
+  #  image: redis:latest
+  #  ports:
+  #    - "6379:6379"
+
+  #cluster mode, not standalone
+  redis-cluster:
     image: redis:latest
+    command: redis-cli --cluster create redis-node-1:6373 redis-node-2:6374 redis-node-3:6375 redis-node-4:6376 redis-node-5:6377 redis-node-6:6378 --cluster-replicas 1 --cluster-yes
+    networks:
+      backend-challenge:
+        #ipv4_address: 172.20.0.30
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+      - redis-node-5
+      - redis-node-6
+  redis-node-1:
+    image: redis:latest
+    command: redis-server /usr/local/etc/redis/redis.conf
     ports:
-      - "6379:6379"
+      - '6373:6373'
+    volumes:
+      - redis-node-1-data:/var/lib/redis
+      - ./docker/redis-node-1.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      backend-challenge:
+        #ipv4_address: 172.20.0.31
+  redis-node-2:
+    image: redis:latest
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - '6374:6374'
+    volumes:
+      - redis-node-2-data:/var/lib/redis
+      - ./docker/redis-node-2.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      backend-challenge:
+        #ipv4_address: 172.20.0.32
+  redis-node-3:
+    image: redis:latest
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - '6375:6375'
+    volumes:
+      - redis-node-3-data:/var/lib/redis
+      - ./docker/redis-node-3.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      backend-challenge:
+        #ipv4_address: 172.20.0.33
+  redis-node-4:
+    image: redis:latest
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - '6376:6376'
+    volumes:
+      - redis-node-4-data:/var/lib/redis
+      - ./docker/redis-node-4.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      backend-challenge:
+        #ipv4_address: 172.20.0.34
+  redis-node-5:
+    image: redis:latest
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - '6377:6377'
+    volumes:
+      - redis-node-5-data:/var/lib/redis
+      - ./docker/redis-node-5.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      backend-challenge:
+        #ipv4_address: 172.20.0.35
+  redis-node-6:
+    image: redis:latest
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - '6378:6378'
+    volumes:
+      - redis-node-6-data:/var/lib/redis
+      - ./docker/redis-node-6.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      backend-challenge:
+       # ipv4_address: 172.20.0.36
+
+volumes:
+  redis-node-1-data:
+  redis-node-2-data:
+  redis-node-3-data:
+  redis-node-4-data:
+  redis-node-5-data:
+  redis-node-6-data:
 
 networks:
   backend-challenge:
     driver: bridge
+    #ipam:
+      #config:
+          #- subnet: 172.20.0.0/24
